@@ -4,17 +4,17 @@
 # Idempotent: safe to rerun; existing files are preserved.
 #
 # What it does:
-#   - Creates /home/$DEPLOY_USER/projects/openape-testrun/{releases,shared/data}
+#   - Creates /home/$DEPLOY_USER/projects/openape-pr/{releases,shared/data}
 #   - Installs /etc/systemd/system/$DEPLOY_SERVICE systemd unit
-#   - Extends /etc/sudoers.d/openape-testrun to allow restart
+#   - Extends /etc/sudoers.d/openape-pr to allow restart
 #   - Writes a shared .env template (operator fills in)
 #   - Installs an nginx vhost (HTTP) for $PUBLIC_HOST and reloads nginx
 #
 # Env:
 #   DEPLOY_USER=openape      (Unix user that owns the app)
-#   DEPLOY_SERVICE=openape-testrun.service
-#   DEPLOY_PORT=3006
-#   PUBLIC_HOST=testrun.openape.ai
+#   DEPLOY_SERVICE=openape-pr.service
+#   DEPLOY_PORT=3009
+#   PUBLIC_HOST=pr.openape.ai
 #
 # After this script, run `certbot --nginx -d $PUBLIC_HOST` to attach TLS.
 # Then trigger the Deploy workflow in GitHub to push the first release.
@@ -27,10 +27,10 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 DEPLOY_USER="${DEPLOY_USER:-openape}"
-DEPLOY_SERVICE="${DEPLOY_SERVICE:-openape-testrun.service}"
-DEPLOY_PORT="${DEPLOY_PORT:-3006}"
-PUBLIC_HOST="${PUBLIC_HOST:-testrun.openape.ai}"
-BASE="/home/${DEPLOY_USER}/projects/openape-testrun"
+DEPLOY_SERVICE="${DEPLOY_SERVICE:-openape-pr.service}"
+DEPLOY_PORT="${DEPLOY_PORT:-3009}"
+PUBLIC_HOST="${PUBLIC_HOST:-pr.openape.ai}"
+BASE="/home/${DEPLOY_USER}/projects/openape-pr"
 
 echo "→ Ensure $DEPLOY_USER exists"
 id -u "$DEPLOY_USER" >/dev/null 2>&1 || {
@@ -57,7 +57,7 @@ HOST=127.0.0.1
 # from NUXT_-prefixed env vars. Plain TURSO_URL is silently ignored and
 # the app falls back to the bundled default (file:./dev.db inside the
 # release dir), which would nuke data on every deploy.
-NUXT_TURSO_URL=file:$BASE/shared/data/testrun.db
+NUXT_TURSO_URL=file:$BASE/shared/data/openape-pr.db
 NUXT_TURSO_AUTH_TOKEN=
 
 # Secrets (rotate by changing here and restarting the service).
@@ -80,7 +80,7 @@ fi
 echo "→ Install systemd unit"
 cat >"/etc/systemd/system/${DEPLOY_SERVICE}" <<EOF
 [Unit]
-Description=OpenApe Testrun (Nuxt)
+Description=OpenApe PR (Nuxt)
 After=network.target
 
 [Service]
@@ -112,7 +112,7 @@ systemctl daemon-reload
 systemctl enable "$DEPLOY_SERVICE"
 
 echo "→ Extend sudoers (idempotent)"
-SUDOERS_FILE="/etc/sudoers.d/openape-testrun"
+SUDOERS_FILE="/etc/sudoers.d/openape-pr"
 cat >"$SUDOERS_FILE" <<EOF
 ${DEPLOY_USER} ALL=(root) NOPASSWD: /bin/systemctl restart ${DEPLOY_SERVICE}
 EOF

@@ -1,17 +1,17 @@
 # Deploy — tested-image Docker on chatty
 
-testrun.openape.ai runs as a Docker container on chatty, following the same
+pr.openape.ai runs as a Docker container on chatty, following the same
 pipeline as the four monorepo web apps (idp/troop/chat/org):
 
 ```
 pnpm build (.output, native)
   → docker buildx --platform linux/amd64 -f compose/package.Dockerfile (COPY-only)
   → local smoke run (/api/health with dummy env)
-  → docker push registry.openape.ai/openape-testrun:prod-<sha>
-  → chatty: scp compose/chatty.yml → /home/openape/prod-testrun/docker-compose.yml
-            pin TESTRUN_TAG in /home/openape/prod-testrun/.env (PREV kept for rollback)
+  → docker push registry.openape.ai/openape-pr:prod-<sha>
+  → chatty: scp compose/chatty.yml → /home/openape/prod-pr/docker-compose.yml
+            pin PR_TAG in /home/openape/prod-pr/.env (PREV kept for rollback)
             docker compose pull + up
-  → external health gate https://testrun.openape.ai/api/health
+  → external health gate https://pr.openape.ai/api/health
   → on failure: revert pin + up again
 ```
 
@@ -30,25 +30,25 @@ Required GH secrets/vars: `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`,
 
 ## Runtime layout on chatty
 
-- `/home/openape/prod-testrun/docker-compose.yml` + `.env` (`TESTRUN_TAG`,
-  `TESTRUN_TAG_PREV`) — the compose project (`openape-testrun`).
-- The container mounts `/home/openape/projects/openape-testrun/shared` at the
+- `/home/openape/prod-pr/docker-compose.yml` + `.env` (`PR_TAG`,
+  `PR_TAG_PREV`) — the compose project (`openape-pr`).
+- The container mounts `/home/openape/projects/openape-pr/shared` at the
   identical path and reads the systemd-era `shared/.env` via `env_file` —
-  SQLite (`NUXT_TURSO_URL=file:…/shared/data/testrun.db`) and secrets are
+  SQLite (`NUXT_TURSO_URL=file:…/shared/data/openape-pr.db`) and secrets are
   untouched by deploys.
-- Port publishes on `127.0.0.1:3006`, exactly where nginx already proxies
-  (vhost `/etc/nginx/sites-available/testrun.openape.ai`, 8443/8081 behind
+- Port publishes on `127.0.0.1:3009`, exactly where nginx already proxies
+  (vhost `/etc/nginx/sites-available/pr.openape.ai`, 8443/8081 behind
   the Traefik SNI-passthrough edge).
 - `user: 999:988` (openape) keeps DB/WAL files openape-owned.
 
 ## Rollback
 
 ```bash
-# automatic: deploy-image.mjs reverts to TESTRUN_TAG_PREV when the health gate fails
+# automatic: deploy-image.mjs reverts to PR_TAG_PREV when the health gate fails
 # manual:
 ssh openape@chatty.delta-mind.at
-cd ~/prod-testrun && sed -i 's/^TESTRUN_TAG=.*/TESTRUN_TAG=<known-good>/' .env
-docker compose --env-file .env -f docker-compose.yml up -d testrun
+cd ~/prod-pr && sed -i 's/^PR_TAG=.*/PR_TAG=<known-good>/' .env
+docker compose --env-file .env -f docker-compose.yml up -d pr
 ```
 
 ## Emergency fallback (systemd)
@@ -57,8 +57,8 @@ The pre-container unit stays installed but disabled. If the registry or
 Docker is broken, the last rsync release on disk still works:
 
 ```bash
-ssh openape@chatty.delta-mind.at 'cd ~/prod-testrun && docker compose down'
-ssh ubuntu@chatty.delta-mind.at 'sudo systemctl start openape-testrun'
+ssh openape@chatty.delta-mind.at 'cd ~/prod-pr && docker compose down'
+ssh ubuntu@chatty.delta-mind.at 'sudo systemctl start openape-pr'
 ```
 
 ## One-time server setup

@@ -17,15 +17,15 @@ import { execFileSync } from 'node:child_process'
 import process from 'node:process'
 
 const APP = {
-  filter: '@openape-testrun/app',
+  filter: '@openape-pr/app',
   outputDir: 'app/.output',
-  image: 'openape-testrun',
-  port: 3006,
-  compose: 'testrun',
-  unit: 'openape-testrun',
-  domain: 'testrun.openape.ai',
-  envVar: 'TESTRUN_TAG',
-  prodDir: '/home/openape/prod-testrun',
+  image: 'openape-pr',
+  port: 3009,
+  compose: 'pr',
+  unit: 'openape-pr',
+  domain: 'pr.openape.ai',
+  envVar: 'PR_TAG',
+  prodDir: '/home/openape/prod-pr',
 }
 
 const REGISTRY = 'registry.openape.ai'

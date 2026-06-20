@@ -1,5 +1,5 @@
 /**
- * Shared SP client instance for testrun.openape.ai.
+ * Shared SP client instance for pr.openape.ai.
  *
  * Single call-site for createSpClient — all command modules import from
  * here rather than reaching into @openape/cli-auth directly. Auth is the
@@ -9,13 +9,13 @@
 import { createSpClient } from '@openape/cli-auth'
 import type { SpClientState } from '@openape/cli-auth'
 
-export type TestrunState = SpClientState
+export type PrState = SpClientState
 
-export const testrunClient = createSpClient<TestrunState>({
-  defaultEndpoint: 'https://testrun.openape.ai',
-  envVar: 'APE_TESTRUNS_ENDPOINT',
-  configFile: 'auth-testruns.json',
-  defaultAud: 'testrun.openape.ai',
+export const prClient = createSpClient<PrState>({
+  defaultEndpoint: 'https://pr.openape.ai',
+  envVar: 'APE_PR_ENDPOINT',
+  configFile: 'auth-pr.json',
+  defaultAud: 'pr.openape.ai',
 })
 
 export const {
@@ -25,4 +25,4 @@ export const {
   saveConfig,
   apiCall: _apiCall,
   _request,
-} = testrunClient
+} = prClient

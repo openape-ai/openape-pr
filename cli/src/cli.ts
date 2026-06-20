@@ -3,31 +3,32 @@ import { docsCommand } from './commands/docs.ts'
 import { loginCommand } from './commands/login.ts'
 import { logoutCommand } from './commands/logout.ts'
 import { openCommand } from './commands/open.ts'
-import { listCommand, rmCommand, showCommand } from './commands/runs.ts'
+import { listCommand, rmCommand, statusCommand } from './commands/prs.ts'
 import { uploadCommand } from './commands/upload.ts'
 import { whoamiCommand } from './commands/whoami.ts'
 import { error } from './output.ts'
 
 const main = defineCommand({
   meta: {
-    name: 'ape-testruns',
+    name: 'ape-pr',
     version: '0.1.0',
     description: [
-      'Upload a test run — descriptions, screenshots, pass/fail — and share one',
-      'link that proves it works: https://testrun.openape.ai/r/<slug>.',
+      'Upload a pull request — diff, description, images — and review it on a',
+      'beautiful surface: https://pr.openape.ai/prs/<id>. Poll the verdict back',
+      'with `ape-pr status <slug>`.',
       '',
-      'First time? `apes login <email>` once on this device. ape-testruns uses the',
-      'unified apes session — same login covers ape-tasks, ape-plans and any other',
-      'OpenApe CLI. Manifest format: `ape-testruns docs manifest`.',
-      'Agent reference: `ape-testruns docs agent`.',
+      'First time? `apes login <email>` once on this device. ape-pr uses the',
+      'unified apes session — same login covers ape-tasks, ape-plans and any',
+      'other OpenApe CLI. Manifest format: `ape-pr docs manifest`.',
+      'Agent reference: `ape-pr docs agent`.',
     ].join('\n'),
   },
   subCommands: {
     upload: uploadCommand,
+    status: statusCommand,
     list: listCommand,
-    show: showCommand,
-    rm: rmCommand,
     open: openCommand,
+    rm: rmCommand,
     whoami: whoamiCommand,
     login: loginCommand,
     logout: logoutCommand,

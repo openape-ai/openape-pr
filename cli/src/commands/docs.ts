@@ -17,9 +17,9 @@ const DOCS: Record<string, string> = {
  * web access.
  *
  * EXAMPLES
- *   $ ape-testruns docs             # lists topics
- *   $ ape-testruns docs agent       # agent-focused end-to-end workflow
- *   $ ape-testruns docs manifest    # testrun.json format
+ *   $ ape-pr docs             # lists topics
+ *   $ ape-pr docs agent       # agent-focused end-to-end workflow
+ *   $ ape-pr docs manifest    # pr.json format
  */
 export const docsCommand = defineCommand({
   meta: {
@@ -34,7 +34,7 @@ export const docsCommand = defineCommand({
       printLine('Available topics:')
       for (const key of Object.keys(DOCS).sort()) printLine(`  ${key}`)
       printLine('')
-      printLine('Example: `ape-testruns docs agent`')
+      printLine('Example: `ape-pr docs agent`')
       return
     }
     const doc = DOCS[args.topic.toLowerCase()]

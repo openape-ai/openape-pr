@@ -1,46 +1,19 @@
-# testrun.json — manifest format
+# pr.json — manifest format
 
-A test run is a directory containing one `testrun.json` plus the screenshots
-it references. `ape-testruns upload <dir>` sends the manifest, then uploads
-every referenced screenshot from the same directory.
+A pull request is a directory containing one `pr.json` plus, optionally, a
+`diff.patch` file and any images the description embeds. `ape-pr upload <dir>`
+sends the manifest and uploads the images.
 
 ```json
 {
-  "title": "Login flow E2E",
-  "project": "my-app",
-  "summary": "Full login round-trip against the staging deploy. **All green.**",
-  "startedAt": "2026-06-12T10:00:00Z",
-  "finishedAt": "2026-06-12T10:03:21Z",
-  "tests": [
-    {
-      "id": "login",
-      "title": "User can log in",
-      "description": "Email + password login lands on the dashboard.",
-      "status": "passed",
-      "steps": [
-        {
-          "title": "Open landing page",
-          "caption": "The page shows the email field **above the fold**.",
-          "shot": "login/01-landing.png",
-          "status": "passed"
-        },
-        {
-          "title": "Submit credentials",
-          "caption": "Submitting redirects to `/dashboard`.",
-          "shot": "login/02-dashboard.png"
-        }
-      ]
-    },
-    {
-      "id": "logout",
-      "title": "User can log out",
-      "status": "failed",
-      "error": "Expected redirect to `/` but stayed on `/dashboard`.\n\n```\nTimeoutError: waiting for navigation\n```",
-      "steps": [
-        { "title": "Click logout", "shot": "logout/01-stuck.png", "status": "failed" }
-      ]
-    }
-  ]
+  "title": "fix: reply composer grows with content",
+  "description": "The reply `<textarea>` was locked to two rows.\n\nGrows with content now. See the [issue](https://git.openape.ai/x/issues/42).\n\n![before](desc/before.png)",
+  "author": "scribe",
+  "authorAct": "agent",
+  "branch": "fix/reply-box-height",
+  "baseSha": "a1b2c3d",
+  "headSha": "9f8e7d6",
+  "diff": "diff --git a/...\n--- a/...\n+++ b/...\n@@ ..."
 }
 ```
 
@@ -48,36 +21,38 @@ every referenced screenshot from the same directory.
 
 | Field | Required | Notes |
 |---|---|---|
-| `title` | yes | Run headline (≤300 chars). |
-| `project` | no | Free-text project name shown above the title. |
-| `summary` | no | Markdown, shown under the header. |
-| `startedAt` / `finishedAt` | no | ISO 8601; renders a duration when both present. |
-| `tests[]` | yes | 1–200 tests. |
-| `tests[].id` | yes | Unique per run (kebab-case recommended). |
-| `tests[].title` | yes | |
-| `tests[].description` | no | Markdown. |
-| `tests[].status` | yes | `passed` \| `failed` \| `skipped`. |
-| `tests[].error` | no | Markdown — error message / stack excerpt for failures. |
-| `tests[].steps[]` | no | ≤100 steps per test. |
-| `steps[].title` | yes | |
-| `steps[].caption` | no | Markdown (inline) — what the screenshot shows. |
-| `steps[].shot` | no | Relative image path: segments of `[A-Za-z0-9._-]`, ending in `.png`/`.jpg`/`.jpeg`/`.webp`/`.gif`. Max 8MB per file. |
-| `steps[].status` | no | Marks a single step as failed in the report. |
+| `title` | yes | PR headline (≤300 chars). |
+| `description` | no | Markdown, shown above the diff. May embed `http(s)` links and images (relative paths uploaded as assets). |
+| `author` | no | Free-text author shown in the header (defaults to the caller). |
+| `authorAct` | no | `human` \| `agent` (default `agent`). |
+| `branch` | no | Source branch label. |
+| `baseSha` / `headSha` | no | Commit refs, shown in the header. |
+| `diff` | yes* | Raw unified diff (`git diff` output). *If omitted, the CLI reads `diff.patch` from the directory. |
+
+## The diff
+
+Send the raw output of `git diff <base>...<head>` — the same text `git`
+prints. It is rendered client-side (split or unified, syntax-highlighted), so
+no pre-processing is needed. File counts and `+`/`-` totals are derived from
+the patch.
+
+The easiest pipeline:
+
+```
+git diff main...HEAD > out/diff.patch
+# write out/pr.json (without a "diff" field)
+ape-pr upload ./out
+```
+
+## Images
+
+Any `.png` / `.jpg` / `.jpeg` / `.webp` / `.gif` in the directory is uploaded
+(max 8 MB each) and addressable from the markdown description by its relative
+path, e.g. `![before](desc/before.png)`.
 
 ## Semantics
 
-- The run status is aggregated server-side: any failed test → `failed`,
-  else any passed → `passed`, else `skipped`.
-- Markdown is rendered with raw HTML escaped — `<script>` etc. never executes.
-  Links must be `http(s)`.
-- Steps without `shot` are fine (text-only steps). A `shot` whose file is
-  missing at upload time renders as text-only; re-upload to fix.
-- Screenshot bytes are stored by path; re-uploading the same run directory
-  creates a NEW run with a new link (runs are immutable evidence).
-
-## Writing style for captions
-
-Captions are product documentation for a reader who sees only the report:
-present tense, describe what the reader can see and what it proves.
-Good: "The dashboard greets the user by name — the session is live."
-Avoid test-speak: "assert that element #user-name is visible".
+- Markdown is rendered with raw HTML escaped — `<script>` etc. never executes;
+  links must be `http(s)`.
+- A PR starts `pending`. Once a human submits a review it becomes `reviewed`;
+  poll the verdict with `ape-pr status <slug>`.

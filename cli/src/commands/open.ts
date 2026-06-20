@@ -1,34 +1,34 @@
 import { defineCommand } from 'citty'
 import { spawn } from 'node:child_process'
 import { platform } from 'node:os'
-import { apiCall } from '../api.ts'
 import { resolveEndpoint } from '../client.ts'
 import { info, printLine } from '../output.ts'
 
 /**
- * Open a run's public report in the default browser.
+ * Open a PR's review page in the default browser.
  *
  * EXAMPLE
- *   $ ape-testruns open 01JX…
- *   https://testrun.openape.ai/r/8fK2…
+ *   $ ape-pr open 01JX…
+ *   https://pr.openape.ai/prs/01JX…
  *   (browser opens)
  */
 export const openCommand = defineCommand({
-  meta: { name: 'open', description: 'Open a run’s public report in the default browser.' },
+  meta: { name: 'open', description: 'Open a PR’s review page in the default browser.' },
   args: {
-    id: { type: 'positional', required: true, description: 'Run ULID.' },
+    id: { type: 'positional', required: true, description: 'PR id.' },
     'print-only': { type: 'boolean', description: 'Print the URL without launching a browser.' },
-    endpoint: { type: 'string', description: 'Override testrun endpoint.' },
+    endpoint: { type: 'string', description: 'Override pr endpoint.' },
   },
   async run({ args }) {
     const endpoint = resolveEndpoint(args.endpoint)
-    const run = await apiCall<{ url: string }>('GET', `/api/runs/${args.id}`, { endpoint })
-    printLine(run.url)
+    const base = endpoint && typeof endpoint === 'string' ? endpoint.replace(/\/$/, '') : 'https://pr.openape.ai'
+    const url = `${base}/prs/${args.id}`
+    printLine(url)
     if (args['print-only']) return
 
     const opener = platform() === 'darwin' ? 'open' : platform() === 'win32' ? 'start' : 'xdg-open'
     try {
-      const child = spawn(opener, [run.url], { detached: true, stdio: 'ignore' })
+      const child = spawn(opener, [url], { detached: true, stdio: 'ignore' })
       child.unref()
     }
     catch {

@@ -1,5 +1,5 @@
 /**
- * Testrun API wrappers around the shared @openape/cli-auth HTTP machinery
+ * PR API wrappers around the shared @openape/cli-auth HTTP machinery
  * (auth, retry, error mapping) — see src/client.ts.
  */
 import { ApiError } from '@openape/cli-auth'

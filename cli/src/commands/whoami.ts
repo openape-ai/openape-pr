@@ -7,11 +7,11 @@ import { printJson, printLine } from '../output.ts'
  * Print the current caller identity as seen by the server.
  *
  * EXAMPLE
- *   $ ape-testruns whoami
- *   patrick@example.com (human)  endpoint https://testrun.openape.ai
+ *   $ ape-pr whoami
+ *   patrick@example.com (human)  endpoint https://pr.openape.ai
  *
- *   $ ape-testruns whoami --json
- *   { "email": "patrick@example.com", "act": "human", "endpoint": "https://testrun.openape.ai" }
+ *   $ ape-pr whoami --json
+ *   { "email": "patrick@example.com", "act": "human", "endpoint": "https://pr.openape.ai" }
  */
 export const whoamiCommand = defineCommand({
   meta: {
@@ -20,7 +20,7 @@ export const whoamiCommand = defineCommand({
   },
   args: {
     json: { type: 'boolean', description: 'JSON output.' },
-    endpoint: { type: 'string', description: 'Override testrun endpoint.' },
+    endpoint: { type: 'string', description: 'Override pr endpoint.' },
   },
   async run({ args }) {
     const endpoint = resolveEndpoint(args.endpoint)

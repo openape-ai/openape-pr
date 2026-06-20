@@ -37,6 +37,10 @@ export default defineNuxtConfig({
   openapeSp: {
     clientId: process.env.NUXT_OPENAPE_CLIENT_ID || 'pr.openape.ai',
     spName: 'OpenApe PR',
+    // Module default is `/dashboard`, which this app doesn't have → post-login
+    // 404. Land on `/` (always exists); index.vue forwards a logged-in user to
+    // /prs. Set explicitly so the redirect can never 404.
+    postLoginRedirect: '/',
     sessionSecret: process.env.NUXT_OPENAPE_SP_SESSION_SECRET
       || process.env.NUXT_SESSION_SECRET
       || 'dev-session-secret-at-least-32-characters-long',

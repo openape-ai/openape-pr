@@ -68,5 +68,5 @@ Tested-image Docker deploy on chatty, same mechanics as the monorepo web apps:
 image (`compose/package.Dockerfile` — installs the arch-matched libsql native
 binding Nitro drops), smoke-tests it, ships it to chatty, pushes to
 registry.openape.ai and runs `docker compose pull && up` with an `/api/health`
-gate and tag rollback (`PR_TAG_PREV`). Publishes on 127.0.0.1:3009; the edge
+gate and tag rollback (`PR_TAG_PREV`). Publishes on 127.0.0.1:3014; the edge
 (Traefik) terminates TLS for pr.openape.ai.

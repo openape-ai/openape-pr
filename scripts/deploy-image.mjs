@@ -20,7 +20,7 @@ const APP = {
   filter: '@openape-pr/app',
   outputDir: 'app/.output',
   image: 'openape-pr',
-  port: 3009,
+  port: 3014,
   compose: 'pr',
   unit: 'openape-pr',
   domain: 'pr.openape.ai',

@@ -36,7 +36,7 @@ Required GH secrets/vars: `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`,
   identical path and reads the systemd-era `shared/.env` via `env_file` —
   SQLite (`NUXT_TURSO_URL=file:…/shared/data/openape-pr.db`) and secrets are
   untouched by deploys.
-- Port publishes on `127.0.0.1:3009`, exactly where nginx already proxies
+- Port publishes on `127.0.0.1:3014`, exactly where nginx already proxies
   (vhost `/etc/nginx/sites-available/pr.openape.ai`, 8443/8081 behind
   the Traefik SNI-passthrough edge).
 - `user: 999:988` (openape) keeps DB/WAL files openape-owned.

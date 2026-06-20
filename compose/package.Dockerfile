@@ -5,11 +5,11 @@
 #
 # Build context = app/.output:
 #   docker buildx build --platform linux/amd64 \
-#     -f compose/package.Dockerfile --build-arg PORT=3009 \
+#     -f compose/package.Dockerfile --build-arg PORT=3014 \
 #     -t registry.openape.ai/openape-pr:prod-<sha> --load app/.output
 
 FROM node:22-bookworm-slim
-ARG PORT=3009
+ARG PORT=3014
 WORKDIR /app
 COPY . ./.output
 # Nitro bundles libsql's JS wrapper but not its platform-specific native

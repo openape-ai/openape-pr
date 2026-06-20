@@ -8,7 +8,7 @@
 #   shared/.env via env_file — the absolute file:-SQLite URL keeps working.
 # - HOST is overridden to 0.0.0.0 (the .env may pin 127.0.0.1, which would
 #   bind loopback INSIDE the container); `environment` wins over `env_file`.
-# - Port publishes on 127.0.0.1:3009 (local) + 10.0.1.1:3009 (Traefik via the
+# - Port publishes on 127.0.0.1:3014 (local) + 10.0.1.1:3014 (Traefik via the
 #   bridge gateway — the edge terminates TLS).
 # - user: 999:988 (openape) so DB/WAL files stay openape-owned.
 # - Image tag pinned via /home/openape/prod-pr/.env (PR_TAG; PR_TAG_PREV is
@@ -28,10 +28,10 @@ services:
     volumes:
       - /home/openape/projects/openape-pr/shared:/home/openape/projects/openape-pr/shared
     ports:
-      - "127.0.0.1:3009:3009"
-      - "10.0.1.1:3009:3009"
+      - "127.0.0.1:3014:3014"
+      - "10.0.1.1:3014:3014"
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3009/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3014/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 6

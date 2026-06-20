@@ -13,7 +13,7 @@
 # Env:
 #   DEPLOY_USER=openape      (Unix user that owns the app)
 #   DEPLOY_SERVICE=openape-pr.service
-#   DEPLOY_PORT=3009
+#   DEPLOY_PORT=3014
 #   PUBLIC_HOST=pr.openape.ai
 #
 # After this script, run `certbot --nginx -d $PUBLIC_HOST` to attach TLS.
@@ -28,7 +28,7 @@ fi
 
 DEPLOY_USER="${DEPLOY_USER:-openape}"
 DEPLOY_SERVICE="${DEPLOY_SERVICE:-openape-pr.service}"
-DEPLOY_PORT="${DEPLOY_PORT:-3009}"
+DEPLOY_PORT="${DEPLOY_PORT:-3014}"
 PUBLIC_HOST="${PUBLIC_HOST:-pr.openape.ai}"
 BASE="/home/${DEPLOY_USER}/projects/openape-pr"
 

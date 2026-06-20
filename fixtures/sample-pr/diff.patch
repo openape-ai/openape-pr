@@ -1,0 +1,38 @@
+diff --git a/app/components/ReplyBox.vue b/app/components/ReplyBox.vue
+index 3a1f2b4..8c2d9e1 100644
+--- a/app/components/ReplyBox.vue
++++ b/app/components/ReplyBox.vue
+@@ -36,9 +36,13 @@ const draft = ref('')
+
+ <template>
+   <div class="reply-box">
+     <textarea
+-      rows="2"
++      :rows="autoRows"
+       v-model="draft"
+       placeholder="Write a reply…"
+     />
+   </div>
+ </template>
++
++<script setup>
++const autoRows = computed(() => Math.max(2, draft.value.split('\n').length))
++</script>
+diff --git a/app/utils/format.ts b/app/utils/format.ts
+index 1122334..5566778 100644
+--- a/app/utils/format.ts
++++ b/app/utils/format.ts
+@@ -1,4 +1,4 @@
+-export function truncate(s: string, n: number) {
+-  return s.slice(0, n) + '...'
++export function truncate(s: string, n = 80) {
++  return s.length > n ? s.slice(0, n) + '…' : s
+ }
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+new file mode 100644
+index 0000000..e69de29
+--- /dev/null
++++ b/CHANGELOG.md
+@@ -0,0 +1,2 @@
++## Unreleased
++- Reply composer grows with content; safer truncate default.

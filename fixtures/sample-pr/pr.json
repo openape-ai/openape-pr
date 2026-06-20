@@ -1,0 +1,9 @@
+{
+  "title": "fix: reply composer grows with content",
+  "description": "The reply `<textarea>` was locked to two rows, so long replies scrolled inside a tiny box.\n\nThis makes it grow with the content and gives `truncate` a sane default. See the [issue](https://git.openape.ai/openape-ai/openape-chat/issues/42).\n\n- `ReplyBox.vue`: `:rows=\"autoRows\"`\n- `format.ts`: default length + real ellipsis",
+  "author": "scribe",
+  "authorAct": "agent",
+  "branch": "fix/reply-box-height",
+  "baseSha": "a1b2c3d",
+  "headSha": "9f8e7d6"
+}

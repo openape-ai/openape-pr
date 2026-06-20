@@ -5,8 +5,8 @@ import { useDb } from '../../../../database/drizzle'
 import { assets } from '../../../../database/schema'
 import { createProblemError } from '../../../../utils/problem'
 import { requireCaller } from '../../../../utils/require-auth'
-import { loadOwnRun } from '../../../../utils/run-access'
-import { referencedShots } from '../../../../utils/run-shape'
+import { loadPrById } from '../../../../utils/pr-access'
+import { ASSET_PATH } from '../../../../utils/pr-shape'
 
 const MAX_ASSET_BYTES = 8 * 1024 * 1024
 const CONTENT_TYPES: Record<string, string> = {
@@ -18,23 +18,27 @@ const CONTENT_TYPES: Record<string, string> = {
 }
 
 /**
- * PUT /api/runs/:id/assets/<path> — upload one screenshot (uploader only).
- * Raw binary body. The path must be referenced by the run's manifest
- * (`shot` field), which also guarantees it is a safe relative image path.
+ * PUT /api/prs/:id/assets/<path> — upload one image (raw binary body).
+ *
+ * Allowed for the PR's uploader (description images) or any human reviewer
+ * (inline-comment images). The path must be a safe relative image path.
  * Re-uploading the same path replaces the previous bytes.
  */
 export default defineEventHandler(async (event) => {
   const caller = await requireCaller(event)
-  const run = await loadOwnRun(event, caller)
+  const id = getRouterParam(event, 'id')!
+  const pr = await loadPrById(id)
+  if (pr.createdBy !== caller.email && caller.act !== 'human') {
+    throw createProblemError({ status: 403, title: 'Forbidden', detail: 'Only the uploader or a human reviewer can attach images.' })
+  }
 
   const path = getRouterParam(event, 'path')
   const decoded = path ? decodeURIComponent(path) : ''
-  const manifest = JSON.parse(run.manifest)
-  if (!referencedShots(manifest).includes(decoded)) {
+  if (!ASSET_PATH.test(decoded)) {
     throw createProblemError({
       status: 400,
-      title: 'Unknown asset path',
-      detail: `"${decoded}" is not referenced by any step's "shot" in this run's manifest.`,
+      title: 'Invalid asset path',
+      detail: `"${decoded}" must be a relative image path (png/jpg/webp/gif, segments of letters, digits, ".", "_", "-").`,
     })
   }
 
@@ -51,10 +55,10 @@ export default defineEventHandler(async (event) => {
 
   const db = useDb()
   const now = Math.floor(Date.now() / 1000)
-  await db.delete(assets).where(and(eq(assets.runId, run.id), eq(assets.path, decoded)))
+  await db.delete(assets).where(and(eq(assets.prId, pr.id), eq(assets.path, decoded)))
   await db.insert(assets).values({
     id: ulid(),
-    runId: run.id,
+    prId: pr.id,
     path: decoded,
     contentType,
     size: body.length,

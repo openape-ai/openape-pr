@@ -1,6 +1,6 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose'
 import { createError, defineEventHandler, setResponseStatus } from 'h3'
-import { signTestrunCliToken } from '../../utils/cli-token'
+import { signPrCliToken } from '../../utils/cli-token'
 
 // Auto-imported from @openape/nuxt-auth-sp via addServerImportsDir:
 //   resolveIssuerForToken, assertSafeIdpUrl, getSpConfig
@@ -14,7 +14,7 @@ interface ExchangeBody {
  * POST /api/cli/exchange — RFC 8693-style token exchange.
  *
  * Extends the standard DDISA CLI flow (which only accepts `aud='apes-cli'`)
- * with a delegation path: tokens with `aud=testrun.openape.ai` or carrying a
+ * with a delegation path: tokens with `aud=pr.openape.ai` or carrying a
  * `grant_id` claim are treated as Receiver delegation tokens
  * (sp-data-access.md §5.1) and validated for scope against the SP manifest.
  *
@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
 
   // Verify the token against the DDISA-resolved issuer's JWKS.
   // We do NOT set audience here so that both aud='apes-cli' (first-party) and
-  // aud='testrun.openape.ai' (delegation) pass jose's validation. We check aud
+  // aud='pr.openape.ai' (delegation) pass jose's validation. We check aud
   // manually below.
   const jwks = createRemoteJWKSet(new URL(resolved.jwksUri), { timeoutDuration: 5000 })
   let claims: Record<string, unknown>
@@ -133,12 +133,11 @@ export default defineEventHandler(async (event) => {
     grantedScope = requested
   }
 
-  // signTestrunCliToken is the local variant of signCliToken that additionally
+  // signPrCliToken is the local variant of signCliToken that additionally
   // supports scope for delegation tokens. It reads secret + clientId from
   // openapeSp.sessionSecret / openapeSp.clientId (same source as the shared
-  // signCliToken from @openape/nuxt-auth-sp, so first-party tokens are
-  // verified identically by verifyTasksCliToken).
-  const { token, expiresAt } = await signTestrunCliToken({
+  // signCliToken from @openape/nuxt-auth-sp).
+  const { token, expiresAt } = await signPrCliToken({
     email: sub,
     act,
     ...(grantedScope ? { scope: grantedScope } : {}),

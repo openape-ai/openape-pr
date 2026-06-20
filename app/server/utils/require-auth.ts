@@ -1,7 +1,8 @@
 import type { H3Event } from 'h3'
 import { createError, getHeader, getMethod, useSession } from 'h3'
 import { useRuntimeConfig } from 'nitropack/runtime'
-import { verifyTestrunCliToken } from './cli-token'
+import { verifyPrCliToken } from './cli-token'
+import { createProblemError } from './problem'
 
 export interface Caller {
   email: string
@@ -75,7 +76,7 @@ export async function requireCaller(event: H3Event): Promise<Caller> {
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.slice(7).trim()
     if (token) {
-      const cli = await verifyTestrunCliToken(token)
+      const cli = await verifyPrCliToken(token)
       if (cli) return enforceScope(event, { email: cli.email, act: cli.act, scope: cli.scope })
       const verified = await verifyAgentToken(token)
       if (verified) return verified
@@ -83,6 +84,18 @@ export async function requireCaller(event: H3Event): Promise<Caller> {
   }
 
   throw createError({ statusCode: 401, statusMessage: 'Unauthorized', message: 'Valid session or bearer token required' })
+}
+
+/**
+ * Like requireCaller, but rejects agents. Reviewing a PR is a human decision —
+ * agents upload PRs and poll the verdict, they never submit one.
+ */
+export async function requireHuman(event: H3Event): Promise<Caller> {
+  const caller = await requireCaller(event)
+  if (caller.act !== 'human') {
+    throw createProblemError({ status: 403, title: 'Forbidden', detail: 'Only a human reviewer can submit a review.' })
+  }
+  return caller
 }
 
 function normalizeAct(raw: unknown): 'human' | 'agent' {

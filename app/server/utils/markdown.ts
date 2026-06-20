@@ -25,3 +25,16 @@ export function renderMarkdownInline(src: string | undefined | null): string {
   if (!src) return ''
   return marked.parseInline(escapeHtml(src), { async: false })
 }
+
+/**
+ * Render markdown, rewriting relative image sources to `${assetBase}/<path>`
+ * so embedded images (`![](desc/before.png)`) resolve to the asset endpoint.
+ * Absolute (http/https) and root-relative srcs are left untouched.
+ */
+export function renderMarkdownWithAssets(src: string | undefined | null, assetBase: string): string {
+  const html = renderMarkdown(src)
+  return html.replace(/<img([^>]*?)src="([^"]+)"/g, (match, attrs, url) => {
+    if (/^(https?:\/\/|\/)/i.test(url)) return match
+    return `<img${attrs}src="${assetBase}/${url}"`
+  })
+}

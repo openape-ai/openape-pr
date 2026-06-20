@@ -8,6 +8,7 @@
     "build": "nuxt build",
     "preview": "nuxt preview",
     "typecheck": "nuxt typecheck",
+    "test": "vitest run",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
@@ -18,6 +19,7 @@
     "@openape/grants": "^0.11.0",
     "@openape/nuxt-auth-sp": "^0.11.1",
     "drizzle-orm": "^0.44.7",
+    "h3": "^1.15.11",
     "jose": "^5.9.6",
     "marked": "^18.0.2",
     "nuxt": "^4.0.0",

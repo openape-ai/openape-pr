@@ -3,12 +3,12 @@ import { useRuntimeConfig } from 'nitropack/runtime'
 import { createError } from 'h3'
 
 /**
- * Testrun-extended CLI token payload — adds optional `scope` for delegation
+ * PR-extended CLI token payload — adds optional `scope` for delegation
  * (sp-data-access.md §5). The shared @openape/nuxt-auth-sp signCliToken does
  * not carry scope; this local variant is used when a delegation subject_token
  * was exchanged and the minted SP token must encode its granted scope subset.
  */
-export interface TestrunCliTokenPayload {
+export interface PrCliTokenPayload {
   iss: string
   aud: string
   typ: 'cli'
@@ -23,7 +23,7 @@ export interface TestrunCliTokenPayload {
 
 function spConfig(): { clientId: string, sessionSecret: string } {
   const cfg = useRuntimeConfig().openapeSp as { clientId?: string, sessionSecret?: string } | undefined
-  const clientId = cfg?.clientId || 'testrun.openape.ai'
+  const clientId = cfg?.clientId || 'pr.openape.ai'
   const sessionSecret = cfg?.sessionSecret || ''
   return { clientId, sessionSecret }
 }
@@ -43,10 +43,10 @@ function secret(): Uint8Array {
  * tokens. Delegation tokens additionally embed a `scope` claim and use a
  * short TTL (15 min) per sp-data-access.md §5.4.
  *
- * Named `signTestrunCliToken` to avoid colliding with the auto-imported
+ * Named `signPrCliToken` to avoid colliding with the auto-imported
  * `signCliToken` from @openape/nuxt-auth-sp.
  */
-export async function signTestrunCliToken(params: {
+export async function signPrCliToken(params: {
   email: string
   act: 'human' | 'agent'
   scope?: string[]
@@ -70,11 +70,11 @@ export async function signTestrunCliToken(params: {
 }
 
 /**
- * Verify a testrun-minted CLI bearer token (HS256, self-issued).
- * Named `verifyTestrunCliToken` to avoid colliding with the auto-imported
+ * Verify a PR-minted CLI bearer token (HS256, self-issued).
+ * Named `verifyPrCliToken` to avoid colliding with the auto-imported
  * `verifyCliToken` from @openape/nuxt-auth-sp.
  */
-export async function verifyTestrunCliToken(token: string): Promise<TestrunCliTokenPayload | null> {
+export async function verifyPrCliToken(token: string): Promise<PrCliTokenPayload | null> {
   const { clientId } = spConfig()
   try {
     const { payload } = await jwtVerify(token, secret(), { issuer: clientId, audience: clientId })
@@ -82,7 +82,7 @@ export async function verifyTestrunCliToken(token: string): Promise<TestrunCliTo
     if (typeof payload.sub !== 'string' || typeof payload.email !== 'string') return null
     if (payload.act !== 'human' && payload.act !== 'agent') return null
     if (payload.scope !== undefined && !Array.isArray(payload.scope)) return null
-    return payload as unknown as TestrunCliTokenPayload
+    return payload as unknown as PrCliTokenPayload
   }
   catch {
     return null

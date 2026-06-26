@@ -1,17 +1,34 @@
-import { defineCommand, runMain } from 'citty'
-import { docsCommand } from './commands/docs.ts'
-import { loginCommand } from './commands/login.ts'
-import { logoutCommand } from './commands/logout.ts'
+import { defineCommand } from 'citty'
+import {
+  makeDocsCommand,
+  makeLoginCommand,
+  makeLogoutCommand,
+  makeWhoamiCommand,
+  runProofCli,
+} from '@openape/proof-cli'
+import { prClient } from './client.ts'
 import { openCommand } from './commands/open.ts'
 import { listCommand, rmCommand, statusCommand } from './commands/prs.ts'
 import { uploadCommand } from './commands/upload.ts'
-import { whoamiCommand } from './commands/whoami.ts'
-import { error } from './output.ts'
+import agent from './docs/agent.md'
+import auth from './docs/auth.md'
+import cli from './docs/cli.md'
+import manifest from './docs/manifest.md'
+
+const DESCRIPTOR = {
+  name: 'pr',
+  endpoint: 'https://pr.openape.ai',
+  envVar: 'APE_PR_ENDPOINT',
+  aud: 'pr.openape.ai',
+  configFile: 'auth-pr.json',
+} as const
+
+const DOCS: Record<string, string> = { agent, auth, cli, manifest }
 
 const main = defineCommand({
   meta: {
     name: 'ape-pr',
-    version: '0.1.0',
+    version: '0.1.1',
     description: [
       'Upload a pull request — diff, description, images — and review it on a',
       'beautiful surface: https://pr.openape.ai/prs/<id>. Poll the verdict back',
@@ -29,33 +46,11 @@ const main = defineCommand({
     list: listCommand,
     open: openCommand,
     rm: rmCommand,
-    whoami: whoamiCommand,
-    login: loginCommand,
-    logout: logoutCommand,
-    docs: docsCommand,
+    whoami: makeWhoamiCommand(DESCRIPTOR, prClient),
+    login: makeLoginCommand(DESCRIPTOR),
+    logout: makeLogoutCommand(DESCRIPTOR, prClient),
+    docs: makeDocsCommand(DESCRIPTOR, DOCS),
   },
 })
 
-process.on('unhandledRejection', (err: unknown) => {
-  handleError(err)
-  process.exit(1)
-})
-
-try {
-  await runMain(main)
-}
-catch (err) {
-  handleError(err)
-  process.exit(1)
-}
-
-function handleError(err: unknown): void {
-  if (err && typeof err === 'object') {
-    const e = err as { title?: string, detail?: string, message?: string, status?: number }
-    const header = e.title ?? e.message ?? 'Unknown error'
-    error(e.status ? `${header} (${e.status})` : header)
-    if (e.detail) error(e.detail)
-    return
-  }
-  error(String(err))
-}
+await runProofCli(main)
